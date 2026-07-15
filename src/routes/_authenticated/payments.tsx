@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowDownToLine } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/payments")({
-  component: Payments;
+  component: Payments,
 });
 
 function Payments() {
