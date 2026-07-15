@@ -34,7 +34,7 @@ function PublicRequest() {
     queryFn: async () => (await supabase.from("profiles").select("business_name, slug").eq("slug", slug).maybeSingle()).data,
   });
 
-  const [form, setForm] = useState({ name: "", phone: "", address: "", description: "", urgency: "week" as const });
+  const [form, setForm] = useState<{ name: string; phone: string; address: string; description: string; urgency: "today" | "week" | "whenever" }>({ name: "", phone: "", address: "", description: "", urgency: "week" });
   const [submitted, setSubmitted] = useState(false);
 
   const submit = useMutation({
@@ -44,7 +44,7 @@ function PublicRequest() {
         p_slug: slug,
         p_name: parsed.name,
         p_phone: parsed.phone,
-        p_address: parsed.address || null,
+        p_address: parsed.address || "",
         p_description: parsed.description,
         p_urgency: parsed.urgency,
       });

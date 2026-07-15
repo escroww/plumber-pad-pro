@@ -17,14 +17,14 @@ function Schedule() {
   const done = useServerFn(markDone);
   const pay = useServerFn(markPaid);
 
-  const { data: jobs } = useQuery({
+  const { data: jobs } = useQuery<JobRow[]>({
     queryKey: ["jobs", "schedule"],
     queryFn: async () => {
       const { data } = await supabase.from("jobs")
         .select("id, description, scheduled_at, status, final_price_cents, suggested_price_cents, customer:customers(name, phone, address)")
         .in("status", ["scheduled", "in_progress", "completed", "paid"])
         .order("scheduled_at", { ascending: true });
-      return data ?? [];
+      return (data ?? []) as unknown as JobRow[];
     },
   });
 
@@ -109,8 +109,18 @@ function StatusPill({ status }: { status: string }) {
   return <span className={`font-bold uppercase ${map[status] ?? ""}`}>{status.replace("_", " ")}</span>;
 }
 
-function groupByDay(jobs: Array<{ scheduled_at: string | null } & Record<string, unknown>>) {
-  const by = new Map<string, typeof jobs>();
+type JobRow = {
+  id: string;
+  description: string;
+  scheduled_at: string | null;
+  status: string;
+  final_price_cents: number | null;
+  suggested_price_cents: number | null;
+  customer: { name: string; phone: string; address: string | null } | null;
+};
+
+function groupByDay(jobs: JobRow[]) {
+  const by = new Map<string, JobRow[]>();
   for (const j of jobs) {
     const key = j.scheduled_at ? new Date(j.scheduled_at).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }) : "Unscheduled";
     if (!by.has(key)) by.set(key, []);
