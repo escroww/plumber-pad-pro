@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { acceptJob, declineJob } from "@/lib/jobs.functions";
+import { analyzeJob } from "@/lib/ai.functions";
 import { currency, loyaltyTier, urgencyLabel, initials } from "@/lib/flowline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +21,7 @@ function Requests() {
   const qc = useQueryClient();
   const accept = useServerFn(acceptJob);
   const decline = useServerFn(declineJob);
+  const analyze = useServerFn(analyzeJob);
 
   const { data: pending, isLoading } = useQuery({
     queryKey: ["jobs", "pending", "all"],
@@ -30,6 +33,24 @@ function Requests() {
       return data ?? [];
     },
   });
+
+  const analyzedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!pending) return;
+    const targets = pending.filter((j) => !j.ai_summary && !analyzedRef.current.has(j.id));
+    if (targets.length === 0) return;
+    (async () => {
+      for (const j of targets) {
+        analyzedRef.current.add(j.id);
+        try {
+          await analyze({ data: { jobId: j.id } });
+        } catch (e) {
+          console.warn("analyze failed", e);
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["jobs", "pending", "all"] });
+    })();
+  }, [pending, analyze, qc]);
 
   const declineM = useMutation({
     mutationFn: (jobId: string) => decline({ data: { jobId } }),
@@ -81,6 +102,16 @@ function Requests() {
                 <span className="font-bold text-foreground">Request:</span> {job.description}
               </p>
               {cust?.address && <p className="mt-1 text-xs text-muted-foreground">{cust.address}</p>}
+
+              {job.ai_summary && (
+                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                  <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={2.5} />
+                  <p className="text-xs leading-relaxed">
+                    <span className="font-black uppercase tracking-wider text-primary">AI · </span>
+                    {job.ai_summary}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-6 flex flex-col items-stretch justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
                 <div className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-sm italic">
