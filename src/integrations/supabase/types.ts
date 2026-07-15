@@ -14,16 +14,249 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          lifetime_spend_cents: number
+          name: string
+          phone: string
+          plumber_id: string
+          updated_at: string
+          visit_count: number
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          lifetime_spend_cents?: number
+          name: string
+          phone: string
+          plumber_id: string
+          updated_at?: string
+          visit_count?: number
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          lifetime_spend_cents?: number
+          name?: string
+          phone?: string
+          plumber_id?: string
+          updated_at?: string
+          visit_count?: number
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          ai_summary: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string
+          description: string
+          final_price_cents: number | null
+          id: string
+          paid_at: string | null
+          plumber_id: string
+          scheduled_at: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          suggested_price_cents: number | null
+          updated_at: string
+          urgency: Database["public"]["Enums"]["urgency"]
+        }
+        Insert: {
+          ai_summary?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id: string
+          description: string
+          final_price_cents?: number | null
+          id?: string
+          paid_at?: string | null
+          plumber_id: string
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          suggested_price_cents?: number | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency"]
+        }
+        Update: {
+          ai_summary?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string
+          final_price_cents?: number | null
+          id?: string
+          paid_at?: string | null
+          plumber_id?: string
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          suggested_price_cents?: number | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          customer_id: string
+          direction: Database["public"]["Enums"]["message_direction"]
+          id: string
+          job_id: string | null
+          plumber_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          customer_id: string
+          direction: Database["public"]["Enums"]["message_direction"]
+          id?: string
+          job_id?: string | null
+          plumber_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          customer_id?: string
+          direction?: Database["public"]["Enums"]["message_direction"]
+          id?: string
+          job_id?: string | null
+          plumber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          customer_id: string | null
+          id: string
+          job_id: string | null
+          kind: string
+          plumber_id: string
+          status: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          job_id?: string | null
+          kind?: string
+          plumber_id: string
+          status?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          job_id?: string | null
+          kind?: string
+          plumber_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          business_name: string
+          created_at: string
+          id: string
+          phone: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          business_name: string
+          created_at?: string
+          id: string
+          phone?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          created_at?: string
+          id?: string
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      submit_request: {
+        Args: {
+          p_address: string
+          p_description: string
+          p_name: string
+          p_phone: string
+          p_slug: string
+          p_urgency: Database["public"]["Enums"]["urgency"]
+        }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      job_status:
+        | "pending"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "paid"
+        | "declined"
+        | "cancelled"
+      message_direction: "inbound" | "outbound" | "system"
+      urgency: "today" | "week" | "whenever"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +383,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      job_status: [
+        "pending",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "paid",
+        "declined",
+        "cancelled",
+      ],
+      message_direction: ["inbound", "outbound", "system"],
+      urgency: ["today", "week", "whenever"],
+    },
   },
 } as const
