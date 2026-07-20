@@ -163,6 +163,7 @@ export type Database = {
           job_id: string | null
           kind: string
           plumber_id: string
+          released_at: string | null
           status: string
         }
         Insert: {
@@ -173,6 +174,7 @@ export type Database = {
           job_id?: string | null
           kind?: string
           plumber_id: string
+          released_at?: string | null
           status?: string
         }
         Update: {
@@ -183,6 +185,7 @@ export type Database = {
           job_id?: string | null
           kind?: string
           plumber_id?: string
+          released_at?: string | null
           status?: string
         }
         Relationships: [
@@ -209,6 +212,7 @@ export type Database = {
           id: string
           phone: string | null
           slug: string
+          tier: string
           updated_at: string
         }
         Insert: {
@@ -217,6 +221,7 @@ export type Database = {
           id: string
           phone?: string | null
           slug: string
+          tier?: string
           updated_at?: string
         }
         Update: {
@@ -225,6 +230,7 @@ export type Database = {
           id?: string
           phone?: string | null
           slug?: string
+          tier?: string
           updated_at?: string
         }
         Relationships: []
@@ -234,6 +240,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_pay_info: {
+        Args: { p_job_id: string }
+        Returns: {
+          already_paid: boolean
+          amount_cents: number
+          business_name: string
+          description: string
+          job_id: string
+          status: string
+        }[]
+      }
+      submit_payment: {
+        Args: { p_amount_cents: number; p_job_id: string }
+        Returns: string
+      }
       submit_request: {
         Args: {
           p_address: string
