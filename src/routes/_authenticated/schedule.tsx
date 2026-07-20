@@ -77,6 +77,71 @@ function Schedule() {
   );
 }
 
+function ScheduleCard({ job, onDone, onPay, busy }: { job: JobRow; onDone: () => void; onPay: () => void; busy: boolean }) {
+  const c = job.customer;
+  const time = job.scheduled_at ? new Date(job.scheduled_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+  const price = job.final_price_cents ?? job.suggested_price_cents ?? 0;
+  const payUrl = typeof window !== "undefined" ? `${window.location.origin}/pay/${job.id}` : "";
+  const [copied, setCopied] = useState(false);
+
+  const { data: heldPayment } = useQuery({
+    queryKey: ["job-held", job.id],
+    queryFn: async () => (await supabase.from("payments")
+      .select("id, amount_cents")
+      .eq("job_id", job.id).eq("status", "held").maybeSingle()).data,
+    enabled: job.status === "scheduled" || job.status === "in_progress" || job.status === "completed",
+  });
+
+  function copyPay() {
+    navigator.clipboard.writeText(payUrl);
+    setCopied(true);
+    toast.success("Pay link copied — send it to your customer");
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  const showActions = job.status !== "paid";
+  return (
+    <div className="flex flex-col gap-4 rounded-3xl border-2 border-border bg-surface p-5 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-4 sm:w-40 sm:border-r sm:border-border sm:pr-4">
+        <div>
+          <div className="text-[10px] font-bold uppercase text-muted-foreground">Time</div>
+          <div className="font-mono text-lg font-bold">{time}</div>
+        </div>
+      </div>
+      <div className="flex-1">
+        <h3 className="font-bold">{job.description}</h3>
+        <p className="text-xs text-muted-foreground">
+          {c?.name}{c?.address ? ` · ${c.address}` : ""} · <StatusPill status={job.status} />
+        </p>
+        {heldPayment && job.status !== "paid" && (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-accent/15 px-2 py-1 text-[11px] font-bold text-accent-foreground">
+            <Lock className="size-3" /> Customer paid {currency(heldPayment.amount_cents)} — held until you mark done
+          </div>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-mono text-sm font-semibold">{currency(price)}</span>
+        {showActions && (
+          <Button size="sm" variant="secondary" onClick={copyPay} className="rounded-xl">
+            {copied ? <Check className="mr-1 size-4" /> : <Link2 className="mr-1 size-4" />}
+            {copied ? "Copied" : "Pay link"}
+          </Button>
+        )}
+        {(job.status === "scheduled" || job.status === "in_progress") && (
+          <Button size="sm" variant="secondary" onClick={onDone} disabled={busy} className="rounded-xl">
+            <CheckCircle2 className="mr-1 size-4" /> Done
+          </Button>
+        )}
+        {job.status === "completed" && (
+          <Button size="sm" onClick={onPay} disabled={busy} className="rounded-xl bg-primary text-primary-foreground">
+            <DollarSign className="mr-1 size-4" /> Mark paid
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     scheduled: "text-primary",
