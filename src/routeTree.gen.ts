@@ -14,9 +14,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
+import { Route as PayJobIdRouteImport } from './routes/pay.$jobId'
+import { Route as AuthenticatedWhatsNewRouteImport } from './routes/_authenticated/whats-new'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -47,6 +50,16 @@ const RSlugRoute = RSlugRouteImport.update({
   path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayJobIdRoute = PayJobIdRouteImport.update({
+  id: '/pay/$jobId',
+  path: '/pay/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWhatsNewRoute = AuthenticatedWhatsNewRouteImport.update({
+  id: '/whats-new',
+  path: '/whats-new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -60,6 +73,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
 const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
@@ -97,9 +115,12 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/whats-new': typeof AuthenticatedWhatsNewRoute
+  '/pay/$jobId': typeof PayJobIdRoute
   '/r/$slug': typeof RSlugRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
 }
@@ -111,9 +132,12 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/messages': typeof AuthenticatedMessagesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/whats-new': typeof AuthenticatedWhatsNewRoute
+  '/pay/$jobId': typeof PayJobIdRoute
   '/r/$slug': typeof RSlugRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
 }
@@ -127,9 +151,12 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
+  '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/whats-new': typeof AuthenticatedWhatsNewRoute
+  '/pay/$jobId': typeof PayJobIdRoute
   '/r/$slug': typeof RSlugRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
 }
@@ -143,9 +170,12 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/messages'
     | '/payments'
+    | '/plan'
     | '/requests'
     | '/schedule'
     | '/settings'
+    | '/whats-new'
+    | '/pay/$jobId'
     | '/r/$slug'
     | '/customers/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -157,9 +187,12 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/messages'
     | '/payments'
+    | '/plan'
     | '/requests'
     | '/schedule'
     | '/settings'
+    | '/whats-new'
+    | '/pay/$jobId'
     | '/r/$slug'
     | '/customers/$id'
   id:
@@ -172,9 +205,12 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/messages'
     | '/_authenticated/payments'
+    | '/_authenticated/plan'
     | '/_authenticated/requests'
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
+    | '/_authenticated/whats-new'
+    | '/pay/$jobId'
     | '/r/$slug'
     | '/_authenticated/customers/$id'
   fileRoutesById: FileRoutesById
@@ -184,6 +220,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  PayJobIdRoute: typeof PayJobIdRoute
   RSlugRoute: typeof RSlugRoute
 }
 
@@ -224,6 +261,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$jobId': {
+      id: '/pay/$jobId'
+      path: '/pay/$jobId'
+      fullPath: '/pay/$jobId'
+      preLoaderRoute: typeof PayJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/whats-new': {
+      id: '/_authenticated/whats-new'
+      path: '/whats-new'
+      fullPath: '/whats-new'
+      preLoaderRoute: typeof AuthenticatedWhatsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -243,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/requests'
       preLoaderRoute: typeof AuthenticatedRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/payments': {
@@ -302,9 +360,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
+  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWhatsNewRoute: typeof AuthenticatedWhatsNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -312,9 +372,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
+  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWhatsNewRoute: AuthenticatedWhatsNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -325,6 +387,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  PayJobIdRoute: PayJobIdRoute,
   RSlugRoute: RSlugRoute,
 }
 export const routeTree = rootRouteImport
