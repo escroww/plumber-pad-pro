@@ -60,38 +60,15 @@ function Schedule() {
           <section key={day}>
             <div className="mb-3 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">{day}</div>
             <div className="space-y-3">
-              {list.map((j) => {
-                const c = j.customer as { name: string; phone: string; address: string | null } | null;
-                const time = j.scheduled_at ? new Date(j.scheduled_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
-                const price = j.final_price_cents ?? j.suggested_price_cents ?? 0;
-                return (
-                  <div key={j.id} className="flex flex-col gap-4 rounded-3xl border-2 border-border bg-surface p-5 sm:flex-row sm:items-center">
-                    <div className="flex items-center gap-4 sm:w-40 sm:border-r sm:border-border sm:pr-4">
-                      <div>
-                        <div className="text-[10px] font-bold uppercase text-muted-foreground">Time</div>
-                        <div className="font-mono text-lg font-bold">{time}</div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold">{j.description}</h3>
-                      <p className="text-xs text-muted-foreground">{c?.name}{c?.address ? ` · ${c.address}` : ""} · <StatusPill status={j.status} /></p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-semibold">{currency(price)}</span>
-                      {j.status === "scheduled" || j.status === "in_progress" ? (
-                        <Button size="sm" variant="secondary" onClick={() => doneM.mutate(j.id)} className="rounded-xl">
-                          <CheckCircle2 className="mr-1 size-4" /> Done
-                        </Button>
-                      ) : null}
-                      {j.status === "completed" ? (
-                        <Button size="sm" onClick={() => payM.mutate(j.id)} className="rounded-xl bg-primary text-primary-foreground">
-                          <DollarSign className="mr-1 size-4" /> Mark paid
-                        </Button>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
+              {list.map((j) => (
+                <ScheduleCard
+                  key={j.id}
+                  job={j}
+                  onDone={() => doneM.mutate(j.id)}
+                  onPay={() => payM.mutate(j.id)}
+                  busy={doneM.isPending || payM.isPending}
+                />
+              ))}
             </div>
           </section>
         ))}
