@@ -71,64 +71,79 @@ function Requests() {
 
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
 
-      {!isLoading && (!pending || pending.length === 0) && (
-        <div className="rounded-3xl border-2 border-dashed border-border bg-surface p-12 text-center">
-          <p className="font-display text-lg font-bold">All clear.</p>
-          <p className="mt-1 text-sm text-muted-foreground">New requests will land here.</p>
-        </div>
-      )}
+      {!isLoading && (
+        <Tabs defaultValue="all">
+          <TabsList className="rounded-2xl">
+            <TabsTrigger value="all" className="rounded-xl gap-1.5"><Inbox className="size-3.5" /> All {pending?.length ? `(${pending.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="today" className="rounded-xl gap-1.5"><Flame className="size-3.5" /> ASAP</TabsTrigger>
+            <TabsTrigger value="week" className="rounded-xl gap-1.5"><CalendarClock className="size-3.5" /> This week</TabsTrigger>
+            <TabsTrigger value="whenever" className="rounded-xl gap-1.5"><Clock className="size-3.5" /> Whenever</TabsTrigger>
+          </TabsList>
 
-      <div className="space-y-4">
-        {pending?.map((job, i) => {
-          const cust = job.customer as { id: string; name: string; phone: string; address: string | null; lifetime_spend_cents: number; visit_count: number } | null;
-          const tier = cust ? loyaltyTier(cust.lifetime_spend_cents ?? 0, cust.visit_count ?? 0) : loyaltyTier(0, 0);
-          const urg = urgencyLabel(job.urgency);
-          return (
-            <div key={job.id} className="animate-in-up rounded-3xl border-2 border-border bg-surface p-6" style={{ animationDelay: `${i * 50}ms` }}>
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-11 place-items-center rounded-full border-2 border-accent bg-accent/20 font-bold text-accent-foreground">{initials(cust?.name ?? "?")}</div>
-                  <div>
-                    <h3 className="font-bold">{cust?.name ?? "Unknown"}</h3>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="flex items-center gap-1.5"><span className={`size-2 rounded-full ${tier.dot}`} /><span className="font-bold text-muted-foreground">{tier.label}</span></span>
-                      {cust?.phone && <span className="font-mono text-muted-foreground">· {cust.phone}</span>}
-                    </div>
+          {(["all", "today", "week", "whenever"] as const).map((tab) => {
+            const list = (pending ?? []).filter((j) => tab === "all" ? true : j.urgency === tab);
+            return (
+              <TabsContent key={tab} value={tab} className="mt-4 space-y-4">
+                {list.length === 0 && (
+                  <div className="rounded-3xl border-2 border-dashed border-border bg-surface p-12 text-center">
+                    <p className="font-display text-lg font-bold">All clear.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Nothing in this bucket.</p>
                   </div>
-                </div>
-                <span className={`rounded-lg px-3 py-1 text-[10px] font-black uppercase ${urg.cls}`}>{urg.label}</span>
-              </div>
+                )}
+                {list.map((job, i) => {
+                  const cust = job.customer as { id: string; name: string; phone: string; address: string | null; lifetime_spend_cents: number; visit_count: number } | null;
+                  const tier = cust ? loyaltyTier(cust.lifetime_spend_cents ?? 0, cust.visit_count ?? 0) : loyaltyTier(0, 0);
+                  const urg = urgencyLabel(job.urgency);
+                  return (
+                    <div key={job.id} className="animate-in-up rounded-3xl border-2 border-border bg-surface p-6" style={{ animationDelay: `${i * 50}ms` }}>
+                      <div className="mb-4 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="grid size-11 place-items-center rounded-full border-2 border-accent bg-accent/20 font-bold text-accent-foreground">{initials(cust?.name ?? "?")}</div>
+                          <div>
+                            <h3 className="font-bold">{cust?.name ?? "Unknown"}</h3>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="flex items-center gap-1.5"><span className={`size-2 rounded-full ${tier.dot}`} /><span className="font-bold text-muted-foreground">{tier.label}</span></span>
+                              {cust?.phone && <span className="font-mono text-muted-foreground">· {cust.phone}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`rounded-lg px-3 py-1 text-[10px] font-black uppercase ${urg.cls}`}>{urg.label}</span>
+                      </div>
 
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                <span className="font-bold text-foreground">Request:</span> {job.description}
-              </p>
-              {cust?.address && <p className="mt-1 text-xs text-muted-foreground">{cust.address}</p>}
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        <span className="font-bold text-foreground">Request:</span> {job.description}
+                      </p>
+                      {cust?.address && <p className="mt-1 text-xs text-muted-foreground">{cust.address}</p>}
 
-              {job.ai_summary && (
-                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-                  <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={2.5} />
-                  <p className="text-xs leading-relaxed">
-                    <span className="font-black uppercase tracking-wider text-primary">AI · </span>
-                    {job.ai_summary}
-                  </p>
-                </div>
-              )}
+                      {job.ai_summary && (
+                        <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                          <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={2.5} />
+                          <p className="text-xs leading-relaxed">
+                            <span className="font-black uppercase tracking-wider text-primary">AI · </span>
+                            {job.ai_summary}
+                          </p>
+                        </div>
+                      )}
 
-              <div className="mt-6 flex flex-col items-stretch justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
-                <div className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-sm italic">
-                  {job.suggested_price_cents ? `Suggested ${currency(job.suggested_price_cents)}` : "No estimate yet"}
-                </div>
-                <div className="flex gap-3">
-                  <Button variant="secondary" onClick={() => declineM.mutate(job.id)} disabled={declineM.isPending} className="rounded-2xl">
-                    Decline
-                  </Button>
-                  <AcceptDialog jobId={job.id} suggested={job.suggested_price_cents ?? 0} onDone={() => { qc.invalidateQueries({ queryKey: ["jobs"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); }} accept={accept} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                      <div className="mt-6 flex flex-col items-stretch justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
+                        <div className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-sm italic">
+                          {job.suggested_price_cents ? `Suggested ${currency(job.suggested_price_cents)}` : "No estimate yet"}
+                        </div>
+                        <div className="flex gap-3">
+                          <Button variant="secondary" onClick={() => declineM.mutate(job.id)} disabled={declineM.isPending} className="rounded-2xl">
+                            Decline
+                          </Button>
+                          <AcceptDialog jobId={job.id} suggested={job.suggested_price_cents ?? 0} onDone={() => { qc.invalidateQueries({ queryKey: ["jobs"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); }} accept={accept} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      )}
     </div>
   );
 }
