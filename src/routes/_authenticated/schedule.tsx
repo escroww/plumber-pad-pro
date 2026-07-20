@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { markDone, markPaid } from "@/lib/jobs.functions";
 import { currency } from "@/lib/flowline";
-import { CheckCircle2, DollarSign } from "lucide-react";
+import { CheckCircle2, DollarSign, Link2, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/schedule")({
