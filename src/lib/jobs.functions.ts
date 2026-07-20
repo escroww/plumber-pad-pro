@@ -51,12 +51,51 @@ export const markDone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => DeclineInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("jobs")
+    const { supabase, userId } = context;
+    // Look up the job first so we can decide whether to release a held payment
+    const { data: job, error: jerr } = await supabase.from("jobs")
+      .select("id, customer_id, final_price_cents, suggested_price_cents")
+      .eq("id", data.jobId).eq("plumber_id", userId).single();
+    if (jerr) throw jerr;
+
+    // Is there a held (escrow) payment for this job?
+    const { data: held } = await supabase.from("payments")
+      .select("id, amount_cents")
+      .eq("job_id", job.id).eq("kind", "payment").eq("status", "held")
+      .maybeSingle();
+
+    if (held) {
+      // Release the escrow: mark payment succeeded, job paid, bump customer stats
+      const now = new Date().toISOString();
+      await supabase.from("payments")
+        .update({ status: "succeeded", released_at: now })
+        .eq("id", held.id);
+      await supabase.from("jobs")
+        .update({ status: "paid", completed_at: now, paid_at: now })
+        .eq("id", job.id);
+      const { data: cust } = await supabase.from("customers")
+        .select("lifetime_spend_cents, visit_count").eq("id", job.customer_id).single();
+      if (cust) {
+        await supabase.from("customers").update({
+          lifetime_spend_cents: (cust.lifetime_spend_cents ?? 0) + held.amount_cents,
+          visit_count: (cust.visit_count ?? 0) + 1,
+        }).eq("id", job.customer_id);
+      }
+      await supabase.from("messages").insert({
+        plumber_id: userId, customer_id: job.customer_id, job_id: job.id,
+        direction: "system", body: `Job completed — $${(held.amount_cents / 100).toFixed(2)} released to your balance.`,
+      });
+      return { ok: true, released: held.amount_cents };
+    }
+
+    // No escrow — just mark completed and wait for markPaid
+    const { error } = await supabase.from("jobs")
       .update({ status: "completed", completed_at: new Date().toISOString() })
-      .eq("id", data.jobId).eq("plumber_id", context.userId);
+      .eq("id", job.id);
     if (error) throw error;
-    return { ok: true };
+    return { ok: true, released: 0 };
   });
+
 
 const PayInput = z.object({ jobId: z.string().uuid() });
 export const markPaid = createServerFn({ method: "POST" })
