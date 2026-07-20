@@ -7,10 +7,11 @@ import { analyzeJob } from "@/lib/ai.functions";
 import { currency, loyaltyTier, urgencyLabel, initials } from "@/lib/flowline";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Inbox, Flame, CalendarClock, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/requests")({
