@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getPublicPlumber, submitJobRequest } from "@/lib/public.functions";
 import { useState } from "react";
 import { z } from "zod";
 import { Droplet, CheckCircle2 } from "lucide-react";
