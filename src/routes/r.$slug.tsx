@@ -40,15 +40,16 @@ function PublicRequest() {
   const submit = useMutation({
     mutationFn: async () => {
       const parsed = schema.parse(form);
-      const { error } = await supabase.rpc("submit_request", {
-        p_slug: slug,
-        p_name: parsed.name,
-        p_phone: parsed.phone,
-        p_address: parsed.address || "",
-        p_description: parsed.description,
-        p_urgency: parsed.urgency,
+      await submitJobRequest({
+        data: {
+          slug,
+          name: parsed.name,
+          phone: parsed.phone,
+          address: parsed.address || "",
+          description: parsed.description,
+          urgency: parsed.urgency,
+        },
       });
-      if (error) throw error;
     },
     onSuccess: () => setSubmitted(true),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
