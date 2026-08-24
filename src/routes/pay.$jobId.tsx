@@ -23,21 +23,11 @@ function PayPage() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["pay-info", jobId],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_pay_info", { p_job_id: jobId });
-      if (error) throw error;
-      return data?.[0] ?? null;
-    },
+    queryFn: () => getPayInfo({ data: { jobId } }),
   });
 
   const pay = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.rpc("submit_payment", {
-        p_job_id: jobId,
-        p_amount_cents: data!.amount_cents,
-      });
-      if (error) throw error;
-    },
+    mutationFn: () => submitJobPayment({ data: { jobId } }),
     onSuccess: () => { setPaid(true); refetch(); toast.success("Payment sent"); },
     onError: (e) => toast.error(e.message),
   });
