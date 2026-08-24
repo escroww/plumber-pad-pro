@@ -31,7 +31,7 @@ function PublicRequest() {
   const { slug } = useParams({ from: "/r/$slug" });
   const { data: plumber, isLoading } = useQuery({
     queryKey: ["plumber", slug],
-    queryFn: async () => (await supabase.from("profiles").select("business_name, slug").eq("slug", slug).maybeSingle()).data,
+    queryFn: () => getPublicPlumber({ data: { slug } }),
   });
 
   const [form, setForm] = useState<{ name: string; phone: string; address: string; description: string; urgency: "today" | "week" | "whenever" }>({ name: "", phone: "", address: "", description: "", urgency: "week" });
