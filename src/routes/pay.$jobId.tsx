@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getPayInfo, submitJobPayment } from "@/lib/public.functions";
 import { currency } from "@/lib/flowline";
 import { Button } from "@/components/ui/button";
 import { Droplet, Lock, ShieldCheck, CheckCircle2 } from "lucide-react";
