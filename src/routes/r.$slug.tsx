@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getPublicPlumber, submitJobRequest } from "@/lib/public.functions";
 import { useState } from "react";
 import { z } from "zod";
 import { Droplet, CheckCircle2 } from "lucide-react";
@@ -31,7 +31,7 @@ function PublicRequest() {
   const { slug } = useParams({ from: "/r/$slug" });
   const { data: plumber, isLoading } = useQuery({
     queryKey: ["plumber", slug],
-    queryFn: async () => (await supabase.from("profiles").select("business_name, slug").eq("slug", slug).maybeSingle()).data,
+    queryFn: () => getPublicPlumber({ data: { slug } }),
   });
 
   const [form, setForm] = useState<{ name: string; phone: string; address: string; description: string; urgency: "today" | "week" | "whenever" }>({ name: "", phone: "", address: "", description: "", urgency: "week" });
@@ -40,15 +40,16 @@ function PublicRequest() {
   const submit = useMutation({
     mutationFn: async () => {
       const parsed = schema.parse(form);
-      const { error } = await supabase.rpc("submit_request", {
-        p_slug: slug,
-        p_name: parsed.name,
-        p_phone: parsed.phone,
-        p_address: parsed.address || "",
-        p_description: parsed.description,
-        p_urgency: parsed.urgency,
+      await submitJobRequest({
+        data: {
+          slug,
+          name: parsed.name,
+          phone: parsed.phone,
+          address: parsed.address || "",
+          description: parsed.description,
+          urgency: parsed.urgency,
+        },
       });
-      if (error) throw error;
     },
     onSuccess: () => setSubmitted(true),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
